@@ -8,6 +8,7 @@ var M=9,N=4
 var win_color = "#22ddaa",
 	square_color = "#999999",
 	highlight_color = "#bbbbbb";
+var data_log =[]
 
 function create_board() {
 	bp = new Array(M*N).fill(0)
@@ -19,49 +20,6 @@ function create_board() {
 		}
 		$(".canvas").append("<br>");
 	}
-}
-
-function user_move(){
-	$('.headertext h1').text('Your turn').css('color', '#000000');
-	$('.canvas, .tile').css('cursor', 'pointer');
-	$('.usedTile, .usedTile div').css('cursor', 'default');
-	$('.tile').off().on('mouseenter', function(e){ 
-		$(e.target).animate({"background-color":highlight_color}, 50)
-	}).on('mouseleave', function(e){ 
-		$(e.target).animate({"background-color": square_color}, 50)
-	});
-	$('.tile').off('click').on('click', function(e){
-		$('.tile').off('mouseenter').off('mouseleave').off('click');
-		$('.canvas, .canvas div').css('cursor', 'default');
-		move_time = Date.now();
-		tile_ind = parseInt(e.target.id.replace("tile_", ""));
-		add_piece(tile_ind,user_color);
-		show_last_move(tile_ind, user_color);
-		//duration = move_end - move_start;
-		winning_pieces = check_win(user_color)
-		console.log(winning_pieces)
-		if(winning_pieces.length==N){
-			show_win(user_color,winning_pieces)
-			$('.headertext h1').text('Game over, you win').css('color', '#000000');
-			end_game()
-		}
-		else if (check_draw()){
-			$('.headertext h1').text('Game over, draw').css('color', '#000000');
-			end_game()
-		}
-		else {
-			make_opponent_move()
-		}
-	});
-}
-
-function end_game(){
-	$("#nextgamebutton").show().off("click").on("click",function(){
-		$("#nextgamebutton").hide()
-		user_color = (user_color+1)%2
-		$(".canvas").empty();
-		start_game()
-	})
 }
 
 function add_piece(i, color) {
@@ -86,7 +44,6 @@ function remove_piece(i){
 
 
 function show_last_move(i, color) {
-	console.log(i,color)
 	if(color == 0) {//BLACK
 		$(".blackShadow").remove();
 		$("#tile_" + i.toString()).append($("<div>" , {"class" : "blackShadow"}))
@@ -173,24 +130,58 @@ function show_win(color, pieces) {
 	}
 }
 
+function user_move(){
+	$('.headertext h1').text('Your turn').css('color', '#000000');
+	$('.canvas, .tile').css('cursor', 'pointer');
+	$('.usedTile, .usedTile div').css('cursor', 'default');
+	$('.tile').off().on('mouseenter', function(e){ 
+		$(e.target).animate({"background-color":highlight_color}, 50)
+	}).on('mouseleave', function(e){ 
+		$(e.target).animate({"background-color": square_color}, 50)
+	});
+	$('.tile').off('click').on('click', function(e){
+		$('.tile').off('mouseenter').off('mouseleave').off('click');
+		$('.canvas, .canvas div').css('cursor', 'default');
+		tile_ind = parseInt(e.target.id.replace("tile_", ""));
+		log_data({"event_type": "user move", "event_info" : {"tile" : tile_ind, "bp" : bp.join(""), "wp": wp.join("")}})
+		add_piece(tile_ind,user_color);
+		show_last_move(tile_ind, user_color);
+		winning_pieces = check_win(user_color)
+		if(winning_pieces.length==N){
+			show_win(user_color,winning_pieces)
+			$('.headertext h1').text('Game over, you win').css('color', '#000000');
+			end_game()
+		}
+		else if (check_draw()){
+			$('.headertext h1').text('Game over, draw').css('color', '#000000');
+			end_game()
+		}
+		else {
+			make_opponent_move()
+		}
+	});
+}
+
 function make_opponent_move(){
 	$('.headertext h1').text('Waiting for opponent').css('color', '#333333');
 	setTimeout(function(){
 		opponent_color = (user_color+1)%2
-		tile_ind = makemove(Date.now(),bp.join(""),wp.join(""),opponent_color);
+		seed = Date.now()
+		tile_ind = makemove(seed,bp.join(""),wp.join(""),opponent_color);
 		setTimeout(function(){
-			move_time = Date.now();
+			log_data({"event_type": "opponent move", "event_info" : {"tile" : tile_ind, "bp" : bp.join(""), "wp": wp.join("")}})
 			add_piece(tile_ind,opponent_color);
 			show_last_move(tile_ind, opponent_color);
 			//duration = move_end - move_start;
 			winning_pieces = check_win(opponent_color)
-			console.log(winning_pieces)
 			if(winning_pieces.length==N){
+				log_data({"event_type": "opponent win", "event_info" : {"winning_pieces" : winning_pieces}})
 				show_win(opponent_color,winning_pieces)
 				$('.headertext h1').text('Game over, you lose').css('color', '#000000');
 				end_game()
 			}
 			else if (check_draw()){
+				log_data({"event_type": "draw", "event_info" : {}})
 				$('.headertext h1').text('Game over, draw').css('color', '#000000');
 				end_game()
 			}
@@ -201,17 +192,66 @@ function make_opponent_move(){
 	},0)
 }
 
+function enter_credentials(){
+	$('.overlayed').show();
+	$('#credentials').show();
+	$( "#credentials_input [type=text]").bind("keydown", function( event ) {
+		$( "#credentials_input [type=submit]").show()
+	})
+	$( "#credentials_input [type=submit]").off("click").on("click",function(){
+		$('.overlayed').hide();
+		$('#credentials').hide();
+		credentials = $( "#credentials_input [type=text]").val()
+		log_data({"event_type" : "credentials entered", "event_info" : {"credentials" : credentials}})
+		start_game()
+	})
+}
+
 function start_game(){
+	log_data({"event_type": "start game", "event_info" : {}})
 	create_board()
 	if(user_color==0)
 		user_move()
 	else
 		make_opponent_move()
 }
+
+
+function end_game(){
+	log_data({"event_type": "end game", "event_info" : {}})
+	$("#nextgamebutton").show().off("click").on("click",function(){
+		$("#nextgamebutton").hide()
+		user_color = (user_color+1)%2
+		$(".canvas").empty();
+		start_game()
+	})
+}
+
+function finish_experiment(){
+	save(data_log,"fourinarow_data_" + credentials + ".json")	
+}
+
+function save(data,filename){
+	var blob = new Blob([JSON.stringify(data)], {type: 'text/csv'});
+	var elem = window.document.createElement('a');
+	elem.href = window.URL.createObjectURL(blob);
+	elem.download = filename;        
+	document.body.appendChild(elem);
+	elem.click();
+	document.body.removeChild(elem);
+}
+
+function log_data(data){
+	data["event_time"] = Date.now()
+	data["credentials"] = credentials
+	console.log(data)
+	data_log.push(data)
+}
 		
 $(document).ready(function(){
 	makemove = Module.cwrap('makemove', 'number', ['number','string','string','number'])
 	user_color = 0
-	start_game()
+	enter_credentials()
+	$(window).unload(finish_experiment)
 });
 

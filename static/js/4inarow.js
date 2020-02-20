@@ -252,6 +252,6 @@ $(document).ready(function(){
 	makemove = Module.cwrap('makemove', 'number', ['number','string','string','number'])
 	user_color = 0
 	enter_credentials()
-	$(window).unload(finish_experiment)
+	$(window).on("beforeunload", finish_experiment)
 });
 

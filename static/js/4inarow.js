@@ -8,7 +8,8 @@ var M=9,N=4
 var win_color = "#22ddaa",
 	square_color = "#999999",
 	highlight_color = "#bbbbbb";
-var data_log =[]
+// keep any existing data from local storage
+var data_log = JSON.parse( localStorage.data_log );
 
 function create_board() {
 	bp = new Array(M*N).fill(0)
@@ -246,12 +247,22 @@ function log_data(data){
 	data["credentials"] = credentials
 	console.log(data)
 	data_log.push(data)
+        store_data_locally();
+}
+
+function store_data_locally(){
+        localStorage.data_log = JSON.stringify( data_log );
 }
 		
 $(document).ready(function(){
 	makemove = Module.cwrap('makemove', 'number', ['number','string','string','number'])
 	user_color = 0
 	enter_credentials()
-	$(window).on("beforeunload", finish_experiment)
+        // note there is no way to save data when the window is closed.
+        // the best you are permitted to do nowadays is to prompt the user.
+        // most browsers even ignore the message content.
+	$(window).on("beforeunload", function(evt) {evt.returnValue = "get unsaved data?"; return "get unsaved data?"; } );
+        // add save button handler
+        $("#savebutton").click( finish_experiment );
 });
 

@@ -8,8 +8,13 @@ var M=9,N=4
 var win_color = "#22ddaa",
 	square_color = "#999999",
 	highlight_color = "#bbbbbb";
-// keep any existing data from local storage
-var data_log = JSON.parse( localStorage.data_log );
+// keep any existing data from local storage, if it exists
+var data_log;
+try{
+  var data_log = JSON.parse( localStorage.data_log );
+}catch(excp){ // nothing valid there? start afresh
+  data_log=[];
+}
 
 function create_board() {
 	bp = new Array(M*N).fill(0)

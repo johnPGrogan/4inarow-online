@@ -139,10 +139,8 @@ html {
 ._blank_ { min-height:1.6vh;}
 
 .mybutton {
-	position:absolute;
 	cursor:pointer;
 	color:#ffffff;
-	transform: translate(-50%, 50%);
 	border-radius:4px;
 	border: 2px solid #666666;
 	background-color:#999999;

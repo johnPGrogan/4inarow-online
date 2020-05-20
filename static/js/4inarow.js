@@ -9,6 +9,7 @@ var win_color = "#22ddaa",
 	square_color = "#999999",
 	highlight_color = "#bbbbbb";
 var data_log =[]
+var num_games
 
 function create_board() {
 	bp = new Array(M*N).fill(0)
@@ -130,7 +131,8 @@ function show_win(color, pieces) {
 	}
 }
 
-function user_move(){
+function user_move(game_num){
+	log_data({"event_type": "your turn", "event_info" : {"bp" : bp.join(""), "wp": wp.join("")}})
 	$('.headertext h1').text('Your turn').css('color', '#000000');
 	$('.canvas, .tile').css('cursor', 'pointer');
 	$('.usedTile, .usedTile div').css('cursor', 'default');
@@ -149,20 +151,23 @@ function user_move(){
 		winning_pieces = check_win(user_color)
 		if(winning_pieces.length==N){
 			show_win(user_color,winning_pieces)
+			log_data({"event_type": "user win", "event_info" : {"bp" : bp.join(""), "wp": wp.join(""), "winning_pieces" : winning_pieces}})
 			$('.headertext h1').text('Game over, you win').css('color', '#000000');
-			end_game()
+			end_game(game_num)
 		}
 		else if (check_draw()){
+			log_data({"event_type": "draw", "event_info" : {"bp" : bp.join(""), "wp": wp.join("")}})
 			$('.headertext h1').text('Game over, draw').css('color', '#000000');
-			end_game()
+			end_game(game_num)
 		}
 		else {
-			make_opponent_move()
+			make_opponent_move(game_num)
 		}
 	});
 }
 
-function make_opponent_move(){
+function make_opponent_move(game_num){
+	log_data({"event_type": "waiting for opponent", "event_info" : {"bp" : bp.join(""), "wp": wp.join("")}})
 	$('.headertext h1').text('Waiting for opponent').css('color', '#333333');
 	setTimeout(function(){
 		opponent_color = (user_color+1)%2
@@ -172,27 +177,87 @@ function make_opponent_move(){
 			log_data({"event_type": "opponent move", "event_info" : {"tile" : tile_ind, "bp" : bp.join(""), "wp": wp.join("")}})
 			add_piece(tile_ind,opponent_color);
 			show_last_move(tile_ind, opponent_color);
-			//duration = move_end - move_start;
 			winning_pieces = check_win(opponent_color)
 			if(winning_pieces.length==N){
-				log_data({"event_type": "opponent win", "event_info" : {"winning_pieces" : winning_pieces}})
+				log_data({"event_type": "opponent win", "event_info" : {"bp" : bp.join(""), "wp": wp.join(""), "winning_pieces" : winning_pieces}})
 				show_win(opponent_color,winning_pieces)
 				$('.headertext h1').text('Game over, you lose').css('color', '#000000');
-				end_game()
+				end_game(game_num)
 			}
 			else if (check_draw()){
-				log_data({"event_type": "draw", "event_info" : {}})
+				log_data({"event_type": "draw", "event_info" : {"bp" : bp.join(""), "wp": wp.join("")}})
 				$('.headertext h1').text('Game over, draw').css('color', '#000000');
-				end_game()
+				end_game(game_num)
 			}
 			else {
-				user_move()
+				user_move(game_num)
 			}
 		},1000);
 	},0)
 }
 
-function enter_credentials(){
+function start_game(game_num){
+	log_data({"event_type": "start game", "event_info" : {"game_num" : game_num}})
+	create_board()
+	if(user_color==0)
+		user_move(game_num)
+	else
+		make_opponent_move(game_num)
+}
+
+function end_game(game_num){
+	log_data({"event_type": "end game", "event_info" : {"game_num" : game_num}})
+	$("#nextgamebutton").show().css({"display" :"inline"}).off("click").on("click",function(){
+		$("#nextgamebutton").hide()
+		user_color = (user_color+1)%2
+		$(".canvas").empty();
+		if(game_num<num_games-1)
+			start_game(game_num+1)
+		else 
+			show_instructions(0,instructions_text_end,instructions_urls_end,function(){
+				$('.headertext h1').text('');
+				finish_experiment()
+			},"Finish")
+	})
+}
+
+function show_instructions(i,texts,urls,callback,start_text){
+	log_data({"event_type": "show instructions", "event_info" : {"screen_number": i}})
+	$('.overlayed').show();
+	$('#instructions').show();
+	$('#instructions p').remove();
+	$('#instructions h4').after("<p>" + texts[i] + "</p>");
+	if(urls[i]==""){
+		$('#instructions img').hide()
+	}
+	else{
+		$('#instructions img').show().attr("src",get_image_path(urls[i] + ".png"));
+	}
+	if(i==0){
+		$('#previousbutton').hide()
+	}
+	else {
+		$('#previousbutton').show().off("click").on("click",function(){
+			show_instructions(i-1,texts,urls,callback,start_text);
+		});
+	}
+	if(i == texts.length - 1 || i == urls.length - 1){
+		$('#nextbutton').text(start_text)
+		$('#nextbutton').off("click").on("click",function(){
+			$('#instructions').hide();
+			$('.overlayed').hide();
+			callback();
+		})
+	}
+	else {
+		$('#nextbutton').text("Next")
+		$('#nextbutton').off("click").on("click",function(){
+			show_instructions(i+1,texts,urls,callback,start_text);
+		});
+	}
+}
+
+function enter_credentials(callback){
 	$('.overlayed').show();
 	$('#credentials').show();
 	$( "#credentials_input [type=text]").bind("keydown", function( event ) {
@@ -201,57 +266,40 @@ function enter_credentials(){
 	$( "#credentials_input [type=submit]").off("click").on("click",function(){
 		$('.overlayed').hide();
 		$('#credentials').hide();
-		credentials = $( "#credentials_input [type=text]").val()
-		log_data({"event_type" : "credentials entered", "event_info" : {"credentials" : credentials}})
-		start_game()
+		user_credentials = $( "#credentials_input [type=text]").val()
+		log_data({"event_type" : "credentials entered", "event_info" : {"credentials" : user_credentials}})
+		callback()
 	})
 }
 
-function start_game(){
-	log_data({"event_type": "start game", "event_info" : {}})
-	create_board()
-	if(user_color==0)
-		user_move()
-	else
-		make_opponent_move()
-}
-
-
-function end_game(){
-	log_data({"event_type": "end game", "event_info" : {}})
-	$("#nextgamebutton").show().off("click").on("click",function(){
-		$("#nextgamebutton").hide()
-		user_color = (user_color+1)%2
-		$(".canvas").empty();
-		start_game()
-	})
-}
-
-function finish_experiment(){
-	save(data_log,"fourinarow_data_" + credentials + ".json")	
-}
-
-function save(data,filename){
-	var blob = new Blob([JSON.stringify(data)], {type: 'text/csv'});
-	var elem = window.document.createElement('a');
-	elem.href = window.URL.createObjectURL(blob);
-	elem.download = filename;        
-	document.body.appendChild(elem);
-	elem.click();
-	document.body.removeChild(elem);
-}
-
-function log_data(data){
-	data["event_time"] = Date.now()
-	data["credentials"] = credentials
-	console.log(data)
-	data_log.push(data)
-}
-		
-$(document).ready(function(){
-	makemove = Module.cwrap('makemove', 'number', ['number','string','string','number'])
+function initialize_task(_num_games,callback){
+	num_games = _num_games
 	user_color = 0
-	enter_credentials()
-	$(window).unload(finish_experiment)
-});
+	instructions_text = ["You'll be playing 4-in-a-row.",
+						 "Pretty exciting.",
+						 "I think so too.",
+						 "here's an image of a chess board"
+						 ]
+
+	instructions_urls = ["",
+						 "",
+						 "",
+						 "instructions_chess"
+						 ]
+	instructions_text_end = ["That's all. Click finished to finish."]
+
+	instructions_urls_end = [""]
+
+	callback()
+}
+
+function start_experiment(){
+	makemove = Module.cwrap('makemove', 'number', ['number','string','string','number'])
+	$(document).on("contextmenu",function(e){
+		e.preventDefault()
+	})
+	show_instructions(0,instructions_text,instructions_urls,function(){
+		start_game(0)
+	},"Start")
+}
 

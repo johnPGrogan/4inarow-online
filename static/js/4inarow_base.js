@@ -10,6 +10,7 @@ var win_color = "#22ddaa",
 	highlight_color = "#bbbbbb";
 var data_log =[]
 var num_games
+var level = 199
 
 function create_board() {
 	bp = new Array(M*N).fill(0)
@@ -172,7 +173,7 @@ function make_opponent_move(game_num){
 	setTimeout(function(){
 		opponent_color = (user_color+1)%2
 		seed = Date.now()
-		tile_ind = makemove(seed,bp.join(""),wp.join(""),opponent_color);
+		tile_ind = makemove(seed,bp.join(""),wp.join(""),opponent_color,level);
 		setTimeout(function(){
 			log_data({"event_type": "opponent move", "event_info" : {"tile" : tile_ind, "bp" : bp.join(""), "wp": wp.join("")}})
 			add_piece(tile_ind,opponent_color);
@@ -294,7 +295,7 @@ function initialize_task(_num_games,callback){
 }
 
 function start_experiment(){
-	makemove = Module.cwrap('makemove', 'number', ['number','string','string','number'])
+	makemove = Module.cwrap('makemove', 'number', ['number','string','string','number','number'])
 	$(document).on("contextmenu",function(e){
 		e.preventDefault()
 	})

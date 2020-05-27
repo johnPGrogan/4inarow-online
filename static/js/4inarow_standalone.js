@@ -1,5 +1,7 @@
 function finish_experiment(){
-	save(data_log,"fourinarow_data_" + user_credentials + ".json")	
+	show_instructions(0,instructions_text_finished,instructions_urls_finished,function(){
+		save(data_log,"fourinarow_data_" + user_credentials + ".json")	
+	},"Finish");
 }
 
 function get_image_path(filename){

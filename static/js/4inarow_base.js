@@ -10,7 +10,7 @@ var win_color = "#22ddaa",
 	highlight_color = "#bbbbbb";
 var data_log =[]
 var num_games
-var level = 199
+var level = 50
 
 function create_board() {
 	bp = new Array(M*N).fill(0)
@@ -154,12 +154,12 @@ function user_move(game_num){
 			show_win(user_color,winning_pieces)
 			log_data({"event_type": "user win", "event_info" : {"bp" : bp.join(""), "wp": wp.join(""), "winning_pieces" : winning_pieces}})
 			$('.headertext h1').text('Game over, you win').css('color', '#000000');
-			end_game(game_num)
+			end_game(game_num,'win')
 		}
 		else if (check_draw()){
 			log_data({"event_type": "draw", "event_info" : {"bp" : bp.join(""), "wp": wp.join("")}})
 			$('.headertext h1').text('Game over, draw').css('color', '#000000');
-			end_game(game_num)
+			end_game(game_num,'draw')
 		}
 		else {
 			make_opponent_move(game_num)
@@ -175,7 +175,7 @@ function make_opponent_move(game_num){
 		seed = Date.now()
 		tile_ind = makemove(seed,bp.join(""),wp.join(""),opponent_color,level);
 		setTimeout(function(){
-			log_data({"event_type": "opponent move", "event_info" : {"tile" : tile_ind, "bp" : bp.join(""), "wp": wp.join("")}})
+			log_data({"event_type": "opponent move", "event_info" : {"tile" : tile_ind, "bp" : bp.join(""), "wp": wp.join(""), "level" : level}})
 			add_piece(tile_ind,opponent_color);
 			show_last_move(tile_ind, opponent_color);
 			winning_pieces = check_win(opponent_color)
@@ -183,12 +183,12 @@ function make_opponent_move(game_num){
 				log_data({"event_type": "opponent win", "event_info" : {"bp" : bp.join(""), "wp": wp.join(""), "winning_pieces" : winning_pieces}})
 				show_win(opponent_color,winning_pieces)
 				$('.headertext h1').text('Game over, you lose').css('color', '#000000');
-				end_game(game_num)
+				end_game(game_num,'opponent win')
 			}
 			else if (check_draw()){
 				log_data({"event_type": "draw", "event_info" : {"bp" : bp.join(""), "wp": wp.join("")}})
 				$('.headertext h1').text('Game over, draw').css('color', '#000000');
-				end_game(game_num)
+				end_game(game_num,'draw')
 			}
 			else {
 				user_move(game_num)
@@ -206,19 +206,28 @@ function start_game(game_num){
 		make_opponent_move(game_num)
 }
 
-function end_game(game_num){
-	log_data({"event_type": "end game", "event_info" : {"game_num" : game_num}})
+function adjust_level(result){
+	old_level = level
+	if(result=='win')
+		level=Math.min(level+20,199)
+	if(result=='opponent win')
+		level=Math.max(level-30,0)
+	log_data({"event_type": "adjust level", "event_info" : {"old_level" : old_level, "new_level" : level}})
+}
+
+function end_game(game_num,result){
+	log_data({"event_type": "end game", "event_info" : {"game_num" : game_num, "result" : result,"level" : level}})
+	adjust_level(result)
 	$("#nextgamebutton").show().css({"display" :"inline"}).off("click").on("click",function(){
 		$("#nextgamebutton").hide()
 		user_color = (user_color+1)%2
 		$(".canvas").empty();
 		if(game_num<num_games-1)
 			start_game(game_num+1)
-		else 
-			show_instructions(0,instructions_text_end,instructions_urls_end,function(){
-				$('.headertext h1').text('');
-				finish_experiment()
-			},"Finish")
+		else{
+			$('.headertext h1').text('');
+			finish_experiment()
+		}
 	})
 }
 
@@ -287,9 +296,11 @@ function initialize_task(_num_games,callback){
 						 "",
 						 "instructions_chess"
 						 ]
-	instructions_text_end = ["That's all. Click finished to finish."]
+	instructions_text_finished = ["That's all. Click finished to finish."]
 
-	instructions_urls_end = [""]
+	instructions_urls_finished = [""]
+	
+	
 
 	callback()
 }

@@ -1,6 +1,5 @@
-var psiturk = new PsiTurk(uniqueId, adServerLoc, mode);
-var LOCAL = (mode === "{{ mode }}");
-
+// Psiturk replaces {{ tags }} in the including page. The script there will set uniqueId, adServerLoc and mode.
+var psiturk = new PsiTurk(uniqueId, adServerLoc, "Lab");
 function finish_experiment(){
 	show_instructions(0,instructions_text_finished,instructions_urls_finished,submitHit,"Finish");
 }
@@ -18,10 +17,6 @@ function saveData() {
 	console.log('saveData');
 	return new Promise(function(resolve, reject) {
 		var timeout;
-		if (LOCAL) {
-			resolve('local');
-			return;
-		}
 		timeout = setTimeout(function() {
 			console.log('TIMEOUT');
 			return reject('timeout');
@@ -43,7 +38,6 @@ function saveData() {
 
 $(window).on('load', function() {
 	psiturk.recordUnstructuredData('start', String(new Date()));
-	psiturk.recordUnstructuredData('params', PARAMS);
 	return saveData()
 	.then(function() {
 		return setTimeout(function(){

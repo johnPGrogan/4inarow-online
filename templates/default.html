@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+
+<html>
+	<body>
+		<script type="text/javascript">
+			function makeid()
+			{
+				var text = "";
+				var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+				for( var i=0; i < 5; i++ )
+					text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+				return text;
+			}
+			
+			const urlParams = new URLSearchParams(window.location.search);
+
+			// We're not running on Amazon so we don't use assignment and hit ids.
+			// However, psiTurk expects them and will throw an error if we don't provide them.
+			var assignmentId = "noas";
+			var hitId = "nohit";
+			var workerId = (urlParams.get('workerId') || "debug") + "_" + makeid();
+			var href = "/exp?assignmentId=" + assignmentId + "&hitId=" + hitId + "&workerId=" + workerId + "&mode=debug"
+
+			window.location.replace(href);
+		</script>
+		Please enable javascript
+	</body>
+</html>

@@ -11,6 +11,9 @@ var win_color = "#22ddaa",
 var data_log =[]
 var num_games
 var level = 50
+var category = 2
+var lastresult = "win"
+
 
 function create_board() {
 	bp = new Array(M*N).fill(0)
@@ -198,7 +201,8 @@ function make_opponent_move(game_num){
 }
 
 function start_game(game_num){
-	log_data({"event_type": "start game", "event_info" : {"game_num" : game_num}})
+	level = (category-1)*40 + Math.floor(Math.random()*40)
+	log_data({"event_type": "start game", "event_info" : {"game_num" : game_num, 'level' : level}})
 	create_board()
 	if(user_color==0)
 		user_move(game_num)
@@ -208,11 +212,15 @@ function start_game(game_num){
 
 function adjust_level(result){
 	old_level = level
-	if(result=='win')
-		level=Math.min(level+20,199)
+	if(result=='win'){
+		if(lastresult=='win'){
+			category = Math.min(category+1,5)
+		}
+	}
 	if(result=='opponent win')
-		level=Math.max(level-30,0)
-	log_data({"event_type": "adjust level", "event_info" : {"old_level" : old_level, "new_level" : level}})
+		category=Math.max(category-1,1)
+	lastresult = result	
+	log_data({"event_type": "adjust level", "event_info" : {"category" : category}})
 }
 
 function end_game(game_num,result){
@@ -285,18 +293,18 @@ function enter_credentials(callback){
 function initialize_task(_num_games,callback){
 	num_games = _num_games
 	user_color = 0
-	instructions_text = ["You'll be playing 4-in-a-row.",
-						 "Pretty exciting.",
-						 "I think so too.",
-						 "here's an image of a chess board"
+	instructions_text = ["You will be playing a few games of 4-in-a-row against the computer",
+						 "The goal of the game is to get four pieces in a row before the computer does",
+						 "A game ends when you or the computer wins, or until the game board is full",
+						 "If the gameboard is full and nobody has 4-in-a-row, then nobody wins"
 						 ]
 
 	instructions_urls = ["",
 						 "",
 						 "",
-						 "instructions_chess"
+						 "You win if you get a 4-in-row horizontal, vertical, or diagonal"
 						 ]
-	instructions_text_finished = ["That's all. Click finished to finish."]
+	instructions_text_finished = ["Thank you for playing! Please click next to answer a few questions."]
 
 	instructions_urls_finished = [""]
 	

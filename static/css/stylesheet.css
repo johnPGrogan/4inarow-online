@@ -58,6 +58,23 @@ html {
 	text-align:center;
 }
 
+.headertext {
+	color: black;
+}
+
+.gamecount {
+	float: left;
+	font-size: 20px;
+}
+
+.clickprompt {
+	display: none;
+	position: absolute;
+	top: 20px;
+	font-size: 30px;
+	text-align: center;
+	width: 100%;
+}
 
 .overlayed{
   opacity:0.4; 

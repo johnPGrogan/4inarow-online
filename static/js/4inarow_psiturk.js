@@ -1,8 +1,5 @@
 // Psiturk replaces {{ tags }} in the including page. The script there will set uniqueId, adServerLoc and mode.
 var psiturk = new PsiTurk(uniqueId, adServerLoc, "Lab");
-function finish_experiment(){
-	show_instructions(0,instructions_text_finished,instructions_urls_finished,submitHit,"Finish");
-}
 
 function log_data(data){
 	data.event_time = Date.now();
@@ -39,14 +36,14 @@ function saveData() {
 $(window).on('load', function() {
 	psiturk.recordUnstructuredData('start', String(new Date()));
 	return saveData()
-	.then(function() {
-		return setTimeout(function(){
-			initialize_task(10,start_experiment)
-		},100);
-	}).catch(handleError);
+	.then(() => setTimeout(() => {
+		initialize_task(10);
+		start_experiment();
+	}, 100))
+	.catch(handleError);
 });
 
-function submitHit() {
+function finish_experiment() {
 	var promptResubmit, triesLeft;
 	console.log('submitHit');
 	$("#overlayed").show()

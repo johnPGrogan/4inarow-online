@@ -13,6 +13,7 @@ var num_games
 var level = 50
 var category = 2
 var lastresult = "win"
+var dismissed_click_prompt = false;
 
 
 function create_board() {
@@ -137,7 +138,7 @@ function show_win(color, pieces) {
 
 function user_move(game_num){
 	log_data({"event_type": "your turn", "event_info" : {"bp" : bp.join(""), "wp": wp.join("")}})
-	$('.headertext h1').text('Your turn').css('color', '#000000');
+	$('.headertext h1').text('Your turn. You play ' + (user_color == 0 ? 'black' : 'white') + ".");
 	$('.canvas, .tile').css('cursor', 'pointer');
 	$('.usedTile, .usedTile div').css('cursor', 'default');
 	$('.tile').off().on('mouseenter', function(e){ 
@@ -152,6 +153,8 @@ function user_move(game_num){
 		log_data({"event_type": "user move", "event_info" : {"tile" : tile_ind, "bp" : bp.join(""), "wp": wp.join("")}})
 		add_piece(tile_ind,user_color);
 		show_last_move(tile_ind, user_color);
+		$(".clickprompt").hide();
+		dismissed_click_prompt = true;
 		winning_pieces = check_win(user_color)
 		if(winning_pieces.length==N){
 			show_win(user_color,winning_pieces)
@@ -201,6 +204,10 @@ function make_opponent_move(game_num){
 }
 
 function start_game(game_num){
+	$('#instructions').hide();
+	$('.overlayed').hide();
+	$('.gamecount').text(`Game ${game_num + 1} of ${num_games}`);
+	if (!dismissed_click_prompt) $('.clickprompt').show();
 	level = (category-1)*40 + Math.floor(Math.random()*40)
 	log_data({"event_type": "start game", "event_info" : {"game_num" : game_num, 'level' : level}})
 	create_board()
@@ -230,49 +237,66 @@ function end_game(game_num,result){
 		$("#nextgamebutton").hide()
 		user_color = (user_color+1)%2
 		$(".canvas").empty();
+		if (instructions[current_instruction_nr].games > 0) {
+			instructions[current_instruction_nr].games--;
+		}
 		if(game_num<num_games-1)
 			start_game(game_num+1)
 		else{
 			$('.headertext h1').text('');
-			finish_experiment()
+			current_instruction_nr++;
+			perform_instruction();
 		}
 	})
 }
 
-function show_instructions(i,texts,urls,callback,start_text){
-	log_data({"event_type": "show instructions", "event_info" : {"screen_number": i}})
+function perform_instruction() {
+	// Finish the game when we run out of instructions
+	if (current_instruction_nr >= instructions.length) {
+		$('#instructions').hide();
+		$('.overlayed').hide();
+		finish_experiment();
+		return;
+	}
+	log_data({"event_type": "show instructions", "event_info" : {"screen_number": current_instruction_nr}})
+	// If the instruction is to play games then skip showing instructions
+	if (instructions[current_instruction_nr].games > 0) {
+		num_games = instructions[current_instruction_nr].games;
+		category = instructions[current_instruction_nr].startCategory;
+		start_game(0);
+		return;
+	}
 	$('.overlayed').show();
 	$('#instructions').show();
 	$('#instructions p').remove();
-	$('#instructions h4').after("<p>" + texts[i] + "</p>");
-	if(urls[i]==""){
+	$('#instructions h4').after("<p>" + (instructions[current_instruction_nr].text || "") + "</p>");
+	if(instructions[current_instruction_nr].image) {
+		$('#instructions img').show().attr("src",get_image_path(instructions[current_instruction_nr].image));
+	} else {
 		$('#instructions img').hide()
 	}
-	else{
-		$('#instructions img').show().attr("src",get_image_path(urls[i] + ".png"));
-	}
-	if(i==0){
+	if(current_instruction_nr==0){
 		$('#previousbutton').hide()
 	}
 	else {
 		$('#previousbutton').show().off("click").on("click",function(){
-			show_instructions(i-1,texts,urls,callback,start_text);
+			do {current_instruction_nr--} while (current_instruction_nr > 0 && instructions[current_instruction_nr].games == 0);
+			perform_instruction(current_instruction_nr);
 		});
 	}
-	if(i == texts.length - 1 || i == urls.length - 1){
-		$('#nextbutton').text(start_text)
-		$('#nextbutton').off("click").on("click",function(){
-			$('#instructions').hide();
-			$('.overlayed').hide();
-			callback();
-		})
+	nextText = "Next";
+	if (current_instruction_nr + 1 < instructions.length) {
+		if (instructions[current_instruction_nr + 1].nextButton &&
+			instructions[current_instruction_nr + 1].games != 0)
+		{
+			nextText = instructions[current_instruction_nr + 1].nextButton;
+		}
 	}
-	else {
-		$('#nextbutton').text("Next")
-		$('#nextbutton').off("click").on("click",function(){
-			show_instructions(i+1,texts,urls,callback,start_text);
-		});
-	}
+	$('#nextbutton').text(nextText);
+	$('#nextbutton').off("click").on("click",function(){
+		do {current_instruction_nr++} while (current_instruction_nr < instructions.length && instructions[current_instruction_nr].games == 0);
+		perform_instruction(current_instruction_nr);
+	});
 }
 
 function enter_credentials(callback){
@@ -290,36 +314,46 @@ function enter_credentials(callback){
 	})
 }
 
-function initialize_task(_num_games,callback){
+function initialize_task(_num_games) {
 	num_games = _num_games
+	current_instruction_nr = 0;
 	user_color = 0
-	instructions_text = ["You will be playing a few games of 4-in-a-row against the computer",
-						 "The goal of the game is to get four pieces in a row before the computer does",
-						 "A game ends when you or the computer wins, or until the game board is full",
-						 "If the gameboard is full and nobody has 4-in-a-row, then nobody wins"
-						 ]
-
-	instructions_urls = ["",
-						 "",
-						 "",
-						 "You win if you get a 4-in-row horizontal, vertical, or diagonal"
-						 ]
-	instructions_text_finished = ["Thank you for playing! Please click next to answer a few questions."]
-
-	instructions_urls_finished = [""]
-	
-	
-
-	callback()
+	instructions = [{
+		text: "You will be playing a few games of 4-in-a-row against the computer"
+	}, {
+		text: "The goal of the game is to get four pieces in a row before the computer does. " +
+		      "You win if you get 4 pieces connected in a row horizontally, vertically or diagonally.",
+		image: "black-about-to-win.png",
+	}, {
+		text: "A game ends when you or the computer wins, or when the game board is full",
+		image: "black-won.png"
+	}, {
+		text: "If the gameboard is full and nobody has 4-in-a-row, then nobody wins",
+		image: "draw.png"
+	}, {
+		text: "If you were playing black then the next game you will play white. And the other way around. " +
+		      "Let's play one game to see how it works."
+	}, {
+		games: 1,
+		startCategory: 1,
+		nextButton: "Practice"
+	}, {
+		text: "Well done! You will now start playing the real games. You will play " + _num_games + " games in total."
+	}, {
+		games: _num_games,
+		startCategory: 2,
+		nextButton: "Start"
+	}, {
+		text: "Thank you for playing! Please click next to answer a few questions.",
+		nextButton: "Finish"
+	}]
 }
 
-function start_experiment(){
+function start_experiment() {
 	makemove = Module.cwrap('makemove', 'number', ['number','string','string','number','number'])
 	$(document).on("contextmenu",function(e){
 		e.preventDefault()
 	})
-	show_instructions(0,instructions_text,instructions_urls,function(){
-		start_game(0)
-	},"Start")
+	perform_instruction()
 }
 

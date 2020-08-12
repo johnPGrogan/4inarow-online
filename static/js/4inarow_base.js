@@ -284,7 +284,7 @@ function perform_instruction() {
 			perform_instruction(current_instruction_nr);
 		});
 	}
-	nextText = "Next";
+	nextText = instructions[current_instruction_nr].nextButton || "Next";
 	if (current_instruction_nr + 1 < instructions.length) {
 		if (instructions[current_instruction_nr + 1].nextButton &&
 			instructions[current_instruction_nr + 1].games != 0)
@@ -345,7 +345,6 @@ function initialize_task(_num_games) {
 		nextButton: "Start"
 	}, {
 		text: "Thank you for playing! Please click next to answer a few questions.",
-		nextButton: "Finish"
 	}]
 }
 

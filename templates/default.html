@@ -14,6 +14,14 @@
 
 				return text;
 			}
+
+			// Psiturk does not like single quotes in its identifiers but encodeURIComponent doesn't encode them.
+			// Even if we replace it with %27 some browsers will decode that right back after they redirect. So we'll replace
+			// it with backtick instead. It will be indistinguishable from if an actual backtick had been used but oh well.
+			function uriComp(value)
+			{
+				return encodeURIComponent(value).replace(/'/g, "`");
+			}
 			
 			const urlParams = new URLSearchParams(window.location.search);
 
@@ -22,7 +30,10 @@
 			var assignmentId = (urlParams.get('assignmentId') || "noas");
 			var workerId = (urlParams.get('workerId') || "debug");
 			var hitId = (urlParams.get('hitId') || "nohit");
-			var href = "/exp?assignmentId=" + assignmentId + "&hitId=" + hitId + "&workerId=" + workerId + "&mode=debug"
+			var href = "/exp?assignmentId=" + uriComp(assignmentId)
+				+ "&hitId=" + uriComp(hitId)
+				+ "&workerId=" + uriComp(workerId)
+				+ "&mode=debug";
 
 			window.location.replace(href);
 		</script>

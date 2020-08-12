@@ -3,6 +3,7 @@
 <html>
 	<body>
 		<script type="text/javascript">
+			// Generate a random string of characters. Can be used to make other id's unique
 			function makeid()
 			{
 				var text = "";
@@ -18,9 +19,9 @@
 
 			// We're not running on Amazon so we don't use assignment and hit ids.
 			// However, psiTurk expects them and will throw an error if we don't provide them.
-			var assignmentId = "noas";
-			var hitId = "nohit";
-			var workerId = (urlParams.get('workerId') || "debug") + "_" + makeid();
+			var assignmentId = (urlParams.get('assignmentId') || "noas");
+			var workerId = (urlParams.get('workerId') || "debug");
+			var hitId = (urlParams.get('hitId') || "nohit");
 			var href = "/exp?assignmentId=" + assignmentId + "&hitId=" + hitId + "&workerId=" + workerId + "&mode=debug"
 
 			window.location.replace(href);

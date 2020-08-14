@@ -321,24 +321,28 @@ function initialize_task(_num_games) {
 	instructions = [{
 		text: "You will be playing a few games of 4-in-a-row against the computer"
 	}, {
-		text: "The goal of the game is to get four pieces in a row before the computer does. " +
-		      "You win if you get 4 pieces connected in a row horizontally, vertically or diagonally.",
-		image: "black-about-to-win.png",
+		text: "In this game, you and the computer place black or white pieces on a game board",
+		image: "black-about-to-win.png"
 	}, {
-		text: "A game ends when you or the computer wins, or when the game board is full",
+		text: "If you get 4 pieces in a row, you win!",
 		image: "black-won.png"
 	}, {
-		text: "If the gameboard is full and nobody has 4-in-a-row, then nobody wins",
+		text: "Horizontal, diagonal or vertical 4-in-a-rows all count",
+		image: "black-won-diagonal.png"
+	}, {
+		text: "If the computer gets 4-in-a-row before you do, you lose"
+	}, {
+		text: "If the board is full and no-one has 4-in-a-row, it's a draw",
 		image: "draw.png"
 	}, {
-		text: "If you were playing black then the next game you will play white. And the other way around. " +
-		      "Let's play one game to see how it works."
+		text: "You will play multiple games. If you were playing black then the next game you will play white." +
+			" And the other way around. Let's play one game to see how it works."
 	}, {
 		games: 1,
 		startCategory: 1,
 		nextButton: "Practice"
 	}, {
-		text: "Well done! You will now start playing the real games. You will play " + _num_games + " games in total."
+		text: "You will be playing a few games of 4-in-a-row against the computer"
 	}, {
 		games: _num_games,
 		startCategory: 2,

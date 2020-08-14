@@ -98,7 +98,7 @@ html {
 	z-index:20;
 }
 
-.popup p {
+.popup > * {
 	text-align:left;
 	margin-left:2%;
 	margin-right:2%;

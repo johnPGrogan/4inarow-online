@@ -149,7 +149,7 @@ function user_move(game_info) {
 		$('.tile').off('mouseenter').off('mouseleave').off('click');
 		$('.canvas, .canvas div').css('cursor', 'default');
 		tile_ind = parseInt(e.target.id.replace("tile_", ""));
-		log_data({"event_type": "user move", "event_info" : {"tile" : tile_ind, "bp" : bp.join(""), "wp": wp.join("")}})
+		log_data({"event_type": "user move", "event_info" : {"tile" : tile_ind, "user_color" : (user_color == 0 ? 'black' : 'white'),  "bp" : bp.join(""), "wp": wp.join("")}})
 		add_piece(tile_ind,user_color);
 		show_last_move(tile_ind, user_color);
 		$(".clickprompt").hide();
@@ -180,7 +180,7 @@ function make_opponent_move(game_info) {
 		seed = Date.now()
 		tile_ind = makemove(seed,bp.join(""),wp.join(""),opponent_color,level);
 		setTimeout(function(){
-			log_data({"event_type": "opponent move", "event_info" : {"tile" : tile_ind, "bp" : bp.join(""), "wp": wp.join(""), "level" : level}})
+			log_data({"event_type": "opponent move", "event_info" : {"tile" : tile_ind, "user_color" : (user_color == 0 ? 'black' : 'white'), "bp" : bp.join(""), "wp": wp.join(""), "level" : level}})
 			add_piece(tile_ind,opponent_color);
 			show_last_move(tile_ind, opponent_color);
 			winning_pieces = check_win(opponent_color)

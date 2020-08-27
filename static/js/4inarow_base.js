@@ -324,7 +324,7 @@ function initialize_task(_num_games) {
 	current_instruction_nr = 0;
 	user_color = 0
 	instructions = [{
-		text: "You will be playing a few games of 4-in-a-row against the computer"
+		text: "You will be playing a few games called 4-in-a-row against the computer"
 	}, {
 		text: "In this game, you and the computer place black or white pieces on a game board",
 		image: "black-about-to-win.png"
@@ -332,16 +332,15 @@ function initialize_task(_num_games) {
 		text: "If you get 4 pieces in a row, you win!",
 		image: "black-won.png"
 	}, {
-		text: "Horizontal, diagonal or vertical 4-in-a-rows all count",
+		text: "You can connect your 4 pieces in any direction, left to right, up down, or tilted, they all count",
 		image: "black-won-diagonal.png"
 	}, {
 		text: "If the computer gets 4-in-a-row before you do, you lose"
 	}, {
-		text: "If the board is full and no-one has 4-in-a-row, it's a draw",
+		text: "If the board is full and no-one has 4-in-a-row, it's a tie",
 		image: "draw.png"
 	}, {
-		text: "You will play multiple games. If you were playing black then the next game you will play white." +
-			" And the other way around. Let's play one game to see how it works."
+		text: "If you were playing black pieces for one game, then the next game you will play white pieces. Let's play one game to see how it works, now you will play black"
 	}, {
 		game_info: {
 			amount: 1,
@@ -351,7 +350,7 @@ function initialize_task(_num_games) {
 		},
 		nextButton: "Practice"
 	}, {
-		text: "You will be playing a few games of 4-in-a-row against the computer"
+		text: "You will now practice playing 4-in-a-row against the computer"
 	}, {
 		game_info: {
 			amount: _num_games,
@@ -360,7 +359,7 @@ function initialize_task(_num_games) {
 		},
 		nextButton: "Start"
 	}, {
-		text: "Thank you for playing! Please click next to answer a few questions.",
+		text: "Thank you for playing! Almost done, please click next to answer a few questions.",
 	}]
 }
 

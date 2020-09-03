@@ -1,5 +1,6 @@
 var b,bp,wp,user_color,m
 var tiles = [];
+var preloadedImages = [];
 var game_status = "ready"
 //game_status = "ready";
 //move_index = 0;
@@ -14,6 +15,19 @@ var category = 2
 var lastresult = "win"
 var dismissed_click_prompt = false;
 
+function goFullscreen() {
+	let element = document.body;
+	let requestMethod = element.requestFullScreen || element.webkitRequestFullScreen || element.mozRequestFullScreen || element.msRequestFullScreen;
+
+	if (requestMethod) { // Native full screen.
+		requestMethod.call(element);
+	} else if (typeof window.ActiveXObject !== "undefined") { // Older IE.
+		var wscript = new ActiveXObject("WScript.Shell");
+		if (wscript !== null) {
+			wscript.SendKeys("{F11}");
+		}
+	}
+}
 
 function create_board() {
 	bp = new Array(M*N).fill(0)
@@ -258,6 +272,55 @@ function end_game(game_info, result) {
 	})
 }
 
+function showButtons(showAnswerButtons) {
+	if (showAnswerButtons) {
+		$('#previousbutton').hide();
+		$('#nextbutton').hide();
+		$('#blackbutton').show();
+		$('#noonebutton').show();
+		$('#whitebutton').show();
+	} else {
+		// Previous button is not visible for the first instruction, during a quiz or after a game or quiz
+		if (current_instruction_nr <= 0 ||
+			instructions[current_instruction_nr].answer ||
+			instructions[current_instruction_nr - 1].answer ||
+			instructions[current_instruction_nr - 1].game_info
+		) {
+			$('#previousbutton').hide();
+		} else {
+			$('#previousbutton').show();
+		}
+		$('#nextbutton').show();
+		$('#blackbutton').hide();
+		$('#noonebutton').hide();
+		$('#whitebutton').hide();
+	}
+}
+
+function answer(given) {
+	let feedback = "Correct! Click next to continue.";
+	let correct = true;
+	let expected = instructions[current_instruction_nr].answer;
+	if (given != expected) {
+		feedback = "The correct answer was " + expected + ". Look at the image again and click next to continue.";
+		correct = false;
+	}
+	log_data({"event_type": "quiz answer", "event_info" : {
+		image: instructions[current_instruction_nr].image,
+		given: given, expected: expected, correct: correct
+	}});
+	$('#instructions p').remove();
+	$('#instructions h4').after("<p>" + feedback + "</p>");
+	showButtons(false);
+}
+
+function change_instruction(delta) {
+	goFullscreen();
+	current_instruction_nr += delta;
+	if (current_instruction_nr < 0) current_instruction_nr = 0;
+	perform_instruction();
+}
+
 function perform_instruction() {
 	// Finish the game when we run out of instructions
 	if (current_instruction_nr >= instructions.length) {
@@ -277,19 +340,14 @@ function perform_instruction() {
 	$('#instructions p').remove();
 	$('#instructions h4').after("<p>" + (instructions[current_instruction_nr].text || "") + "</p>");
 	if(instructions[current_instruction_nr].image) {
-		$('#instructions img').show().attr("src",get_image_path(instructions[current_instruction_nr].image));
+		// Set the image to nothing first to prevent any previous image from showing as the current one loads
+		$('#instructions img').show().attr("src", "").attr("src",get_image_path(instructions[current_instruction_nr].image));
 	} else {
 		$('#instructions img').hide()
 	}
-	if(current_instruction_nr==0){
-		$('#previousbutton').hide()
-	}
-	else {
-		$('#previousbutton').show().off("click").on("click",function(){
-			do {current_instruction_nr--} while (current_instruction_nr > 0 && instructions[current_instruction_nr].games == 0);
-			perform_instruction(current_instruction_nr);
-		});
-	}
+	showButtons(instructions[current_instruction_nr].answer);
+	
+	// The text on the next button can depend on the instruction after the current one.
 	nextText = instructions[current_instruction_nr].nextButton || "Next";
 	if (current_instruction_nr + 1 < instructions.length) {
 		if (instructions[current_instruction_nr + 1].nextButton &&
@@ -299,10 +357,6 @@ function perform_instruction() {
 		}
 	}
 	$('#nextbutton').text(nextText);
-	$('#nextbutton').off("click").on("click",function(){
-		do {current_instruction_nr++} while (current_instruction_nr < instructions.length && instructions[current_instruction_nr].games == 0);
-		perform_instruction(current_instruction_nr);
-	});
 }
 
 function enter_credentials(callback){
@@ -324,7 +378,7 @@ function initialize_task(_num_games) {
 	current_instruction_nr = 0;
 	user_color = 0
 	instructions = [{
-		text: "You will be playing a few games called 4-in-a-row against the computer"
+		text: "You will be playing a few games called 4-in-a-row against the computer. Press next to make the experiment fullscreen and see the next instruction."
 	}, {
 		text: "In this game, you and the computer place black or white pieces on a game board",
 		image: "black-about-to-win.png"
@@ -340,17 +394,37 @@ function initialize_task(_num_games) {
 		text: "If the board is full and no-one has 4-in-a-row, it's a tie",
 		image: "draw.png"
 	}, {
-		text: "If you were playing black pieces for one game, then the next game you will play white pieces. Let's play one game to see how it works, now you will play black"
+		text: "If you were playing black pieces for one game, then the next game you will play white pieces. Let's play two games to see how it works. You will start playing black."
 	}, {
 		game_info: {
-			amount: 1,
+			amount: 2,
 			practice: true,
 			startCategory: 1,
 			startLevel: 1
 		},
 		nextButton: "Practice"
 	}, {
-		text: "You will now practice playing 4-in-a-row against the computer"
+		text: "Let's see if you got it. Which color has won in the game shown below?",
+		image: "blackHorizontal.png",
+		answer: "Black"
+	}, {
+		text: "Which color has won in the game shown below?",
+		image: "whiteDiagonal.png",
+		answer: "White"
+	}, {
+		text: "Which color has won in this game?",
+		image: "whiteVertical.png",
+		answer: "White"
+	}, {
+		text: "Look closely! Which color has won?",
+		image: "whiteNoWin.png",
+		answer: "No-one"
+	}, {
+		text: "One more. Which color has won in this game?",
+		image: "blackDiagonal.png",
+		answer: "Black"
+	}, {
+		text: "You will now play " + _num_games + " games of 4-in-a-row against the computer. Do your best! You will win bonus money based on how well you play."
 	}, {
 		game_info: {
 			amount: _num_games,
@@ -359,7 +433,7 @@ function initialize_task(_num_games) {
 		},
 		nextButton: "Start"
 	}, {
-		text: "Thank you for playing! Almost done, please click next to answer a few questions.",
+		text: "Thank you for playing! Almost done, please click next to answer a few questions.\n\nIf you are 12 years old or younger please invite your parent to help you.",
 	}]
 }
 
@@ -368,6 +442,14 @@ function start_experiment() {
 	$(document).on("contextmenu",function(e){
 		e.preventDefault()
 	})
+	// Preload all the instruction images
+	instructions.forEach(ins => {
+		if (ins.image) {
+			let img = new Image();
+			img.src = get_image_path(ins.image);
+			preloadedImages.push(img);
+		}
+	});
 	perform_instruction()
 }
 

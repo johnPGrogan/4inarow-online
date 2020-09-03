@@ -47,8 +47,11 @@
 				<img src="" style="width:100%; height:100%; object-fit:contain;"></img>
 			</div>
 			<div style="height: 3em;">
-				<button id="previousbutton" type="button" class="mybutton" style="left:43%;width:10%; transform: unset;">Previous</button>
-				<button id="nextbutton" type="button" class="mybutton" style="left:57%;width:10%; transform: unset;">Next</button>
+				<button id="previousbutton" type="button" class="mybutton" style="left:43%;width:10%; transform: unset;" onclick="change_instruction(-1);">Previous</button>
+				<button id="nextbutton" type="button" class="mybutton" style="left:57%;width:10%; transform: unset;" onclick="change_instruction(+1);">Next</button>
+				<button id="blackbutton" type="button" class="mybutton" style="left:32.5%;width:10%; transform: unset;" onclick="answer('Black');">Black</button>
+				<button id="noonebutton" type="button" class="mybutton" style="left:46.5%;width:10%; transform: unset;" onclick="answer('No-one');">No-one</button>
+				<button id="whitebutton" type="button" class="mybutton" style="left:60.5%;width:10%; transform: unset;" onclick="answer('White');">White</button>
 			</div>
 		</div>
 		<div class="popup" id="database_error">

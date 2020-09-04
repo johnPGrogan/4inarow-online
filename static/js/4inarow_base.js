@@ -298,6 +298,7 @@ function showButtons(showAnswerButtons) {
 }
 
 function answer(given) {
+	goFullscreen();
 	let feedback = "Correct! Click next to continue.";
 	let correct = true;
 	let expected = instructions[current_instruction_nr].answer;

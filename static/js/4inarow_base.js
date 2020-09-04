@@ -433,7 +433,7 @@ function initialize_task(_num_games) {
 		},
 		nextButton: "Start"
 	}, {
-		text: "Thank you for playing! Almost done, please click next to answer a few questions.\n\nIf you are 12 years old or younger please invite your parent to help you.",
+		text: "Thank you for playing! Almost done, please click next to answer a few questions.",
 	}]
 }
 

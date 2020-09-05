@@ -360,21 +360,6 @@ function perform_instruction() {
 	$('#nextbutton').text(nextText);
 }
 
-function enter_credentials(callback){
-	$('.overlayed').show();
-	$('#credentials').show();
-	$( "#credentials_input [type=text]").bind("keydown", function( event ) {
-		$( "#credentials_input [type=submit]").show()
-	})
-	$( "#credentials_input [type=submit]").off("click").on("click",function(){
-		$('.overlayed').hide();
-		$('#credentials').hide();
-		user_credentials = $( "#credentials_input [type=text]").val()
-		log_data({"event_type" : "credentials entered", "event_info" : {"credentials" : user_credentials}})
-		callback()
-	})
-}
-
 function initialize_task(_num_games) {
 	current_instruction_nr = 0;
 	user_color = 0

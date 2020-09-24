@@ -1,17 +1,17 @@
 # These settings only apply to MTurk and are not needed if we run standalone
 [HIT Configuration]
-# title = Stroop task
-# description = Judge the color of a series of words.
-# amt_keywords = Perception, Psychology
+# title = Four in a row
+# description = Play against the computer in the 'four in a row' task
+# amt_keywords = Executive, Psychology
 # lifetime = 24
 # us_only = true
 # approve_requirement = 95
 # number_hits_approved = 0
 # require_master_workers = false
-contact_email_on_error = hartleylab@nyu.edu
-# ad_group = Default psiTurk Stroop Example
-# psiturk_keywords = stroop
-# organization_name = New Great University
+contact_email_on_error = john.grogan@ndcn.ox.ac.uk
+# ad_group = Four in a row
+# psiturk_keywords = executive
+# organization_name = University of Oxford
 # browser_exclude_rule = MSIE, mobile, tablet
 allow_repeats = true
 
@@ -21,7 +21,7 @@ table_name = 4inarow
 
 [Server Parameters]
 host = 0.0.0.0
-port = 22362
+port = 8081
 cutoff_time = 30
 logfile = server.log
 loglevel = 2

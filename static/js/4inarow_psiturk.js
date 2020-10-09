@@ -37,7 +37,7 @@ $(window).on('load', function() {
 	psiturk.recordUnstructuredData('start', String(new Date()));
 	return saveData()
 	.then(() => setTimeout(() => {
-		initialize_task(10);
+		initialize_task(20);
 		// PsiTurk considers a participant hasn't started until they have finished the instruction.
 		// We want psiTurk to treat them as started right away to get the refresh/page close protection.
 		psiturk.finishInstructions();
